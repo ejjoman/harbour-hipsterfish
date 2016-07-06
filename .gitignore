@@ -1,3 +1,6 @@
+# common
+*.key
+
 # C++ objects and libs
 
 *.slo
