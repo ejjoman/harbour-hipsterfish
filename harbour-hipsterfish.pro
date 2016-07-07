@@ -12,6 +12,7 @@
 # The name of your application
 TARGET = harbour-hipsterfish
 
+QT += qml
 CONFIG += link_pkgconfig sailfishapp c++11
 PKGCONFIG += mlite5
 

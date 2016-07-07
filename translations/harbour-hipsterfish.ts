@@ -4,7 +4,7 @@
 <context>
     <name>CoverPage</name>
     <message>
-        <location filename="../qml/cover/CoverPage.qml" line="38"/>
+        <location filename="../qml/cover/CoverPage.qml" line="8"/>
         <source>My Cover</source>
         <translation type="unfinished"></translation>
     </message>
@@ -12,17 +12,17 @@
 <context>
     <name>LoginPage</name>
     <message>
-        <location filename="../qml/pages/LoginPage.qml" line="63"/>
+        <location filename="../qml/pages/LoginPage.qml" line="19"/>
         <source>Login to Instagram</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/LoginPage.qml" line="69"/>
+        <location filename="../qml/pages/LoginPage.qml" line="25"/>
         <source>Username</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/LoginPage.qml" line="81"/>
+        <location filename="../qml/pages/LoginPage.qml" line="37"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>

@@ -1,9 +1,7 @@
-#ifdef QT_QML_DEBUG
 #include <QtQuick>
-#endif
-
 #include <sailfishapp.h>
 #include <QDebug>
+
 #include "instagramclient.h"
 #include "instagramaccount.h"
 #include "instagramaccountmanager.h"
