@@ -127,6 +127,12 @@ Item {
                 id: img
                 anchors.fill: parent
                 source: imageContainer.getBestMatch().url
+
+                opacity: img.status === Image.Ready ? 1 : 0
+
+                Behavior on opacity {
+                    FadeAnimator {}
+                }
             }
 
             Loader {

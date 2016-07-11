@@ -10,10 +10,15 @@ Item {
 
     property alias source: profilePicture.source
 
-    Image {
-        anchors.fill: parent
+    opacity: profilePicture.status === Image.Ready ? 1 : 0
 
+        FadeAnimator {}
+    }
+
+    Image {
         id: profilePicture
+
+        anchors.fill: parent
         visible: false
         source: model.user.profile_pic_url
     }

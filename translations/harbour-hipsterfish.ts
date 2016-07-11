@@ -30,12 +30,12 @@
 <context>
     <name>PostDelegate</name>
     <message>
-        <location filename="../qml/delegates/PostDelegate.qml" line="297"/>
+        <location filename="../qml/delegates/PostDelegate.qml" line="303"/>
         <source>&lt;b&gt;%L1&lt;/b&gt; views</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/delegates/PostDelegate.qml" line="297"/>
+        <location filename="../qml/delegates/PostDelegate.qml" line="303"/>
         <source>&lt;b&gt;%L1&lt;/b&gt; likes</source>
         <translation type="unfinished"></translation>
     </message>
