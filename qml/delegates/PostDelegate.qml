@@ -135,6 +135,15 @@ Item {
                 }
             }
 
+            ProgressCircle {
+                anchors.centerIn: parent
+                visible: img.status !== Image.Ready
+                inAlternateCycle: true
+                value: img.progress
+            }
+
+
+
             Loader {
                 anchors.fill: parent
                 active: isVideo

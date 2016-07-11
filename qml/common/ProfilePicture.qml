@@ -12,6 +12,7 @@ Item {
 
     opacity: profilePicture.status === Image.Ready ? 1 : 0
 
+    Behavior on opacity {
         FadeAnimator {}
     }
 
