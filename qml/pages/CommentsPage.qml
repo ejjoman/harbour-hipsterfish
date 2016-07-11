@@ -40,6 +40,19 @@ Page {
         })
     }
 
+    property int currentIndex: 0
+    onCurrentIndexChanged: loadMore();
+
+    function loadMore() {
+        if (!comments.canLoadMore || root.isLoading || commentsView.quickScrollAnimating)
+            return;
+
+        if (comments.count - (currentIndex+1) <= 2 ) {
+            console.log("!!! load moar !!!", currentIndex, (comments.count-1))
+            loadComments(false)
+        }
+    }
+
     SilicaListView {
         id: commentsView
 
@@ -48,20 +61,32 @@ Page {
         model: comments.model
         spacing: Theme.paddingLarge
 
+        onContentYChanged: {
+            var idx = indexAt(0, contentY) // + height)
+
+            if (idx >= 0)
+                root.currentIndex = idx
+        }
+
+        onQuickScrollAnimatingChanged: root.loadMore();
+
         delegate: Item {
             height: childrenRect.height
 
             anchors {
                 left: parent.left
                 right: parent.right
-                leftMargin: Theme.horizontalPageMargin
-                rightMargin: Theme.horizontalPageMargin
             }
 
             Row {
+                id: row
+
                 anchors {
                     left: parent.left
                     right: parent.right
+
+                    leftMargin: Theme.horizontalPageMargin
+                    rightMargin: Theme.horizontalPageMargin
                 }
 
                 spacing: Theme.paddingMedium
@@ -76,10 +101,13 @@ Page {
                 }
 
                 Column {
+                    id: column
+
                     width: parent.width - parent.spacing - profilePicture.width
                     spacing: Theme.paddingSmall
 
                     Label {
+                        id: commentLabel
                         width: parent.width
                         font.pixelSize: Theme.fontSizeSmall
                         text: "<b>" + model.user.username + "</b> " + model.text
