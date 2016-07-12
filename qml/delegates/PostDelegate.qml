@@ -15,16 +15,18 @@ Item {
             InstagramClient.unlike(model.id, function(result) {
                 console.debug(JSON.stringify(result))
 
-                if (result.status === "ok")
-                    hasLiked = false
+                if (result.status !== "ok")
+                    hasLiked = true
             })
         else
             InstagramClient.like(model.id, function(result) {
                 console.debug(JSON.stringify(result))
 
-                if (result.status === "ok")
-                    hasLiked = true
+                if (result.status !== "ok")
+                    hasLiked = false
             })
+
+        hasLiked = !hasLiked
     }
 
     anchors {
