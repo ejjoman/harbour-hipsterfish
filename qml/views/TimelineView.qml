@@ -102,5 +102,14 @@ BaseView {
 //        }
 
         VerticalScrollDecorator {}
+
+        opacity: listView.count > 0 ? 1 : 0
+        Behavior on opacity { FadeAnimator {}}
+    }
+
+    BusyIndicator {
+        anchors.centerIn: parent
+        size: BusyIndicatorSize.Large
+        running: isLoading && listView.count == 0
     }
 }
