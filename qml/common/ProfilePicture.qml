@@ -22,6 +22,11 @@ Item {
         anchors.fill: parent
         visible: false
         source: model.user.profile_pic_url
+
+        sourceSize {
+            width: width
+            height: height
+        }
     }
 
     Rectangle {

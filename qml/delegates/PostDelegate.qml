@@ -129,6 +129,10 @@ Item {
                 id: img
                 anchors.fill: parent
                 source: imageContainer.getBestMatch().url
+                sourceSize {
+                    width: width
+                    height: height
+                }
 
                 opacity: img.status === Image.Ready ? 1 : 0
 
