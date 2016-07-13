@@ -22,7 +22,7 @@ Page {
         var nextID = !clear && comments.canLoadMore ? comments.nextMaxID : "";
 
         InstagramClient.loadCommentsForMedia(mediaID, nextID, function(result) {
-            console.log(JSON.stringify(result, null, 4))
+            //console.log(JSON.stringify(result, null, 4))
 
             // reverse comments, because we use bottom-to-top direction in commentsView
             result.comments.sort(function(a, b) {
@@ -48,13 +48,15 @@ Page {
             return;
 
         if (comments.count - (currentIndex+1) <= 2 ) {
-            console.log("!!! load moar !!!", currentIndex, (comments.count-1))
+            //console.log("!!! load moar !!!", currentIndex, (comments.count-1))
             loadComments(false)
         }
     }
 
     SilicaListView {
         id: commentsView
+
+        currentIndex: -1
 
         verticalLayoutDirection: ListView.BottomToTop
         anchors.fill: parent
@@ -70,8 +72,58 @@ Page {
 
         onQuickScrollAnimatingChanged: root.loadMore();
 
-        delegate: Item {
-            height: childrenRect.height
+        footer: LoadingMoreIndicator {
+            visible: isLoading
+        }
+
+        header: CommentEditor {
+            id: commentEditor
+
+            onHasFocusChanged: pushUpMenu.enabled = !hasFocus
+            onIsSendingChanged: refreshMenuItem.enabled = !isSending
+
+            onSendCommentClicked: {
+                isSending = true
+
+                InstagramClient.sendComment(mediaID, text.trim(), function(result) {
+                    isSending = false;
+                    clear()
+
+                    console.debug(JSON.stringify(result, null, 4));
+
+                    var bigint = BigInteger.create(result.comment.pk);
+
+                    console.log("comment id:", result.comment.pk.toString())
+                    console.log("comment id (int):", result.comment.pk)
+                    console.log("comment id (bigint):", bigint.toString())
+
+                    if (result.status === "ok")
+                        comments.model.insert(0, result.comment);
+
+                });
+
+            }
+        }
+
+        delegate: ListItem {
+            id: delegate
+            //height: childrenRect.height
+
+            function remove() {
+                //var bigint = BigInteger.create(model.pk);
+                console.log("comment id:", model.pk.toString())
+                //console.log("comment id (bigint):", BigInteger._createValue()(model.pk))
+                InstagramClient.printNumber(model.pk);
+
+                remorseAction(qsTr("Deleting comment"), function() {
+                    InstagramClient.deleteComments(mediaID, [model.pk.toString()], function(result) {
+                        console.debug(JSON.stringify(result, null, 4));
+
+                        if (result.status === "ok")
+                            comments.model.remove(model.index);
+                    })
+                })
+            }
 
             anchors {
                 left: parent.left
@@ -122,67 +174,64 @@ Page {
                     }
                 }
             }
-        }
 
-        header: Item {
-            width: parent.width
-            height: commentTextArea.height
-        }
+            menu: Component {
+                id: contextMenu
 
-        TextArea {
-            id: commentTextArea
-            parent: parent.contentItem
-            y: commentsView.headerItem.y
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Delete comment")
+                        visible: model.user.pk === InstagramClient.currentAccount.userID
 
-            readonly property bool empty: text.length === 0 && !inputMethodComposing
-            onEmptyChanged: console.log("empty:", empty)
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: parent.top
-                topMargin: Theme.paddingMedium
+                        onClicked: delegate.remove()
+                    }
+
+                    MenuItem {
+                        text: qsTr("Report comment")
+                        visible: model.user.pk !== InstagramClient.currentAccount.userID
+                    }
+                }
             }
-
-            font.pixelSize: Theme.fontSizeSmall
-            placeholderText: qsTr("Write a comment")
         }
 
         PushUpMenu {
+            id: pushUpMenu
+
+//            MenuItem {
+//                text: qsTr("Send comment")
+//                visible: !commentTextArea.empty
+
+//                onClicked: {
+//                    var obj = {
+//                        "bit_flags": 0,
+//                        "content_type": "comment",
+//                        "created_at": Math.floor(Date.now() / 1000),
+//                        "created_at_utc": Math.floor(Date.now() / 1000),
+//                        "pk": 17861628592014726,
+//                        "status": "Active",
+//                        "text": commentTextArea.text,
+//                        "type": 0,
+//                        "user": {
+//                            "full_name": InstagramClient.currentAccount.fullName,
+//                            "is_private": false,
+//                            "is_verified": false,
+//                            "pk": 1700988529,
+//                            "profile_pic_id": "",
+//                            "profile_pic_url": "",
+//                            "username": InstagramClient.currentAccount.userName
+//                        },
+//                        "user_id": InstagramClient.currentAccount.userID
+//                    }
+
+//                    comments.model.insert(0, obj);
+//                }
+//            }
+
             MenuItem {
-                text: qsTr("Send comment")
-                visible: !commentTextArea.empty
+                id: refreshMenuItem
 
-                onClicked: {
-                    var obj = {
-                        "bit_flags": 0,
-                        "content_type": "comment",
-                        "created_at": Math.floor(Date.now() / 1000),
-                        "created_at_utc": Math.floor(Date.now() / 1000),
-                        "pk": 17861628592014726,
-                        "status": "Active",
-                        "text": commentTextArea.text,
-                        "type": 0,
-                        "user": {
-                            "full_name": InstagramClient.currentAccount.fullName,
-                            "is_private": false,
-                            "is_verified": false,
-                            "pk": 1700988529,
-                            "profile_pic_id": "",
-                            "profile_pic_url": "",
-                            "username": InstagramClient.currentAccount.userName
-                        },
-                        "user_id": InstagramClient.currentAccount.userID
-                    }
-
-                    comments.model.insert(0, obj);
-                }
-            }
-
-            MenuItem {
                 text: qsTr("Refresh")
                 onClicked: loadComments(true)
-
-                visible: commentTextArea.empty
             }
         }
 

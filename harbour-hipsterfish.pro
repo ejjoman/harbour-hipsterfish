@@ -67,7 +67,9 @@ DISTFILES += \
     qml/common/BaseView.qml \
     qml/views/SearchView.qml \
     qml/views/NotificationsView.qml \
-    qml/views/MeView.qml
+    qml/views/MeView.qml \
+    qml/common/LoadingMoreIndicator.qml \
+    qml/common/CommentEditor.qml
 
 HEADERS += \
     src/dconfcookiejar.h \
@@ -75,3 +77,4 @@ HEADERS += \
     src/instagramaccount.h \
     src/instagramaccountmanager.h
 
+include(3rdparty/qt-json/qt-json.pri)

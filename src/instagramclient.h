@@ -36,6 +36,9 @@ public:
     Q_INVOKABLE void loadCommentsForMedia(QString mediaID, QJSValue callback);
     Q_INVOKABLE void loadCommentsForMedia(QString mediaID, QString maxID, QJSValue callback);
 
+    Q_INVOKABLE void sendComment(QString mediaID, QString comment, QJSValue callback);
+    Q_INVOKABLE void deleteComments(QString mediaID, QStringList commentIDs, QJSValue callback);
+
     Q_INVOKABLE void loadLikers(QString mediaID, QJSValue callback);
 
     Q_INVOKABLE void like(QString mediaID, QJSValue callback);

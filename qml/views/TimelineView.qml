@@ -91,6 +91,10 @@ BaseView {
             width: parent.width
         }
 
+        footer: LoadingMoreIndicator {
+            visible: isLoading && listView.count > 0
+        }
+
         delegate: PostDelegate {}
 
 //        delegate: Label {

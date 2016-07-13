@@ -11,7 +11,7 @@ class InstagramAccount : public QObject
 
     Q_PROPERTY(QString userName READ userName NOTIFY userNameChanged)
     Q_PROPERTY(QString fullName READ fullName NOTIFY fullNameChanged)
-    Q_PROPERTY(qlonglong userID READ userID)
+    Q_PROPERTY(qlonglong userID READ userID CONSTANT)
 
 public:
     explicit InstagramAccount(const qlonglong userID, QObject *parent = 0);

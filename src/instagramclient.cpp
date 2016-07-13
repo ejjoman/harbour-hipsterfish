@@ -12,6 +12,7 @@
 #include <QNetworkProxy>
 #include <limits.h>
 #include <QTimeZone>
+#include "3rdparty/qt-json/json.h"
 
 const QString InstagramClient::SETTINGS_PATH = QString("/apps/").append(APP_NAME).append("/");
 InstagramClient *InstagramClient::_instance = 0;
@@ -78,18 +79,15 @@ void InstagramClient::apiRequestFinished(QNetworkReply *reply)
 {
     qDebug() << qPrintable("Request finished");
 
-    auto response = reply->readAll();
-    //qDebug() << response;
-    auto json = QJsonDocument::fromJson(response);
-
     QUuid key = reply->request().attribute(QNetworkRequest::User).value<QUuid>();
-    qDebug() << "Key:" << key.toString();
 
     auto cb = this->callbacks->take(key);
 
-    if (!cb.isUndefined())
-        cb.call(QJSValueList {cb.engine()->toScriptValue(json.toVariant())});
-
+    if (!cb.isUndefined()) {
+        auto response = reply->readAll();
+        auto json = QtJson::parse(QString(response));
+        cb.call(QJSValueList {cb.engine()->toScriptValue(json)});
+    }
 }
 
 void InstagramClient::loginFinished(QNetworkReply *reply)
@@ -253,6 +251,33 @@ void InstagramClient::loadCommentsForMedia(QString mediaID, QString maxID, QJSVa
     executeGetRequest(url, callback);
 }
 
+void InstagramClient::sendComment(QString mediaID, QString comment, QJSValue callback)
+{
+    QJsonObject json;
+    json["_uid"] = QString::number(currentAccount()->userID());
+    json["_uuid"] = guid();
+    json["comment_text"] = comment.trimmed();
+
+    QByteArray body = this->getSignedBody(json);
+
+    QUrl url(QString("https://i.instagram.com/api/v1/media/%1/comment/").arg(mediaID));
+    executePostRequest(url, body, callback);
+}
+
+void InstagramClient::deleteComments(QString mediaID, QStringList commentIDs, QJSValue callback)
+{
+    QJsonObject json;
+    json["_uid"] = QString::number(currentAccount()->userID());
+    json["_uuid"] = guid();
+    json["comment_ids_to_delete"] = commentIDs.join(QChar(','));
+
+    QByteArray body = this->getSignedBody(json);
+
+    QUrl url(QString("https://i.instagram.com/api/v1/media/%1/comment/bulk_delete/").arg(mediaID));
+    executePostRequest(url, body, callback);
+
+}
+
 void InstagramClient::loadLikers(QString mediaID, QJSValue callback)
 {
     QUrl url(QString("https://i.instagram.com/api/v1/media/%1/likers/").arg(mediaID));
@@ -263,7 +288,6 @@ void InstagramClient::like(QString mediaID, QJSValue callback)
 {
     QJsonObject json;
     json["module_name"] = QString("feed_timeline");
-    //json["_csrftoken"] = createCleanedUuid().remove(QChar('-'));
     json["media_id"] = mediaID;
     json["_uid"] = QString::number(currentAccount()->userID());
     json["_uuid"] = guid();
@@ -278,7 +302,6 @@ void InstagramClient::unlike(QString mediaID, QJSValue callback)
 {
     QJsonObject json;
     json["module_name"] = QString("feed_timeline");
-    //json["_csrftoken"] = createCleanedUuid().remove(QChar('-'));
     json["media_id"] = mediaID;
     json["_uid"] = currentAccount()->userID();
     json["_uuid"] = guid();
@@ -315,6 +338,7 @@ void InstagramClient::executePostRequest(QUrl url, QByteArray postData, QJSValue
     }
 
     QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded; charset=UTF-8");
     this->setRequiredHeaders(request);
     request.setAttribute(QNetworkRequest::User, key);
 
