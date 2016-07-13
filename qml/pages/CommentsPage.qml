@@ -89,14 +89,6 @@ Page {
                     isSending = false;
                     clear()
 
-                    console.debug(JSON.stringify(result, null, 4));
-
-                    var bigint = BigInteger.create(result.comment.pk);
-
-                    console.log("comment id:", result.comment.pk.toString())
-                    console.log("comment id (int):", result.comment.pk)
-                    console.log("comment id (bigint):", bigint.toString())
-
                     if (result.status === "ok")
                         comments.model.insert(0, result.comment);
 
@@ -107,14 +99,9 @@ Page {
 
         delegate: ListItem {
             id: delegate
-            //height: childrenRect.height
+            contentHeight: row.height + Theme.paddingMedium
 
             function remove() {
-                //var bigint = BigInteger.create(model.pk);
-                console.log("comment id:", model.pk.toString())
-                //console.log("comment id (bigint):", BigInteger._createValue()(model.pk))
-                InstagramClient.printNumber(model.pk);
-
                 remorseAction(qsTr("Deleting comment"), function() {
                     InstagramClient.deleteComments(mediaID, [model.pk.toString()], function(result) {
                         console.debug(JSON.stringify(result, null, 4));
@@ -139,6 +126,7 @@ Page {
 
                     leftMargin: Theme.horizontalPageMargin
                     rightMargin: Theme.horizontalPageMargin
+                    verticalCenter: parent.verticalCenter
                 }
 
                 spacing: Theme.paddingMedium
