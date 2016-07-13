@@ -56,6 +56,7 @@ Page {
     SilicaListView {
         id: commentsView
 
+        clip: true
         currentIndex: -1
 
         verticalLayoutDirection: ListView.BottomToTop
@@ -179,47 +180,6 @@ Page {
                         visible: model.user.pk !== InstagramClient.currentAccount.userID
                     }
                 }
-            }
-        }
-
-        PushUpMenu {
-            id: pushUpMenu
-
-//            MenuItem {
-//                text: qsTr("Send comment")
-//                visible: !commentTextArea.empty
-
-//                onClicked: {
-//                    var obj = {
-//                        "bit_flags": 0,
-//                        "content_type": "comment",
-//                        "created_at": Math.floor(Date.now() / 1000),
-//                        "created_at_utc": Math.floor(Date.now() / 1000),
-//                        "pk": 17861628592014726,
-//                        "status": "Active",
-//                        "text": commentTextArea.text,
-//                        "type": 0,
-//                        "user": {
-//                            "full_name": InstagramClient.currentAccount.fullName,
-//                            "is_private": false,
-//                            "is_verified": false,
-//                            "pk": 1700988529,
-//                            "profile_pic_id": "",
-//                            "profile_pic_url": "",
-//                            "username": InstagramClient.currentAccount.userName
-//                        },
-//                        "user_id": InstagramClient.currentAccount.userID
-//                    }
-
-//                    comments.model.insert(0, obj);
-//                }
-//            }
-
-            MenuItem {
-                id: refreshMenuItem
-
-                text: qsTr("Refresh")
-                onClicked: loadComments(true)
             }
         }
 

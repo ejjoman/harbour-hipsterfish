@@ -66,7 +66,7 @@ BaseView {
         id: listView
         anchors.fill: parent
         spacing: Theme.paddingLarge * 2
-
+        clip: true
         model: timeline.model
         //quickScrollEnabled: false
 
