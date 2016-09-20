@@ -17,12 +17,21 @@ class InstagramClient : public QObject
     Q_OBJECT
 
     Q_PROPERTY(InstagramAccount* currentAccount READ currentAccount WRITE setCurrentAccount NOTIFY currentAccountChanged)
-    Q_PROPERTY(QString phoneID READ phoneID)
+    Q_PROPERTY(QString phoneID READ phoneID CONSTANT)
 
 public:
+    enum SearchCategory {
+        TopSearch,
+        UsersSearch,
+        TagsSearch,
+        PlacesSearch
+    };
+
+    Q_ENUMS(SearchCategory)
+
     static const QString SETTINGS_PATH;
 
-    Q_INVOKABLE void login(QString username, QString password);
+    Q_INVOKABLE void login(QString username, QString password, QJSValue callback);
 
     InstagramAccount *currentAccount() const;
     void setCurrentAccount(InstagramAccount *account);
@@ -44,11 +53,31 @@ public:
     Q_INVOKABLE void like(QString mediaID, QJSValue callback);
     Q_INVOKABLE void unlike(QString mediaID, QJSValue callback);
 
-signals:
-    void loginError(int statusCode, QJsonDocument jsonData);
+    Q_INVOKABLE void discover(QString maxID, QJSValue callback);
 
-    void accountCreated(InstagramAccount *account);
+    Q_INVOKABLE void loadUserInfo(qlonglong userID, QJSValue callback);
+    Q_INVOKABLE void loadUserInfo(QString username, QJSValue callback);
+
+    Q_INVOKABLE void loadUserFeed(qlonglong userID, QString maxID, QJSValue callback);
+    Q_INVOKABLE void loadLocationFeed(qlonglong locationID, QString maxID, QString rankToken, QJSValue callback);
+    Q_INVOKABLE void loadTagFeed(QString tag, QString maxID, QString rankToken, QJSValue callback);
+
+    Q_INVOKABLE void loadRelatedTags(QString tag, QStringList visitedTags, QJSValue callback);
+    Q_INVOKABLE void loadTagInfos(QString tag, QJSValue callback);
+
+    Q_INVOKABLE void loadFriendshipStatus(qlonglong userID, QJSValue callback);
+    Q_INVOKABLE void loadFriendshipStatus(QList<qlonglong> userIDs, QJSValue callback);
+
+    Q_INVOKABLE void loadFollowers(qlonglong userID, QString maxID, QJSValue callback);
+    Q_INVOKABLE void loadFollowing(QString module, qlonglong userID, QString maxID, QJSValue callback);
+
+    Q_INVOKABLE void search(SearchCategory category, QString query, int count, QString rankToken, QJSValue callback);
+
+    Q_INVOKABLE QString createCleanedUuid() const;
+
+signals:
     void currentAccountChanged();
+    void accountNeedsRelogin(InstagramAccount *account);
 
 public slots:
 
@@ -73,7 +102,8 @@ private:
     QString phoneID() const;
     QString guid() const;
     QString deviceID() const;
-    QString createCleanedUuid() const;
+
+    int timezoneOffset() const;
 
     QByteArray getSignedBody(QJsonObject json) const;
     QByteArray getSignedBody(QByteArray data) const;
@@ -85,6 +115,8 @@ private:
     void executePostRequest(QUrl url, QByteArray postData, QJSValue callback);
 
     void setRequiredHeaders(QNetworkRequest &request);
+    void handleRequestError(QString error);
+
 
     QMap<QUuid, QJSValue> *callbacks;
 };

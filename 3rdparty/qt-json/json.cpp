@@ -485,11 +485,9 @@ namespace QtJson {
         } else {
             uint u = numberStr.toUInt(&ok);
             if (!ok) {
-                // just return the number as string as the QML side will have problems with huge numbers...
-                return QVariant(numberStr);
-//                qulonglong ull = numberStr.toULongLong(&ok);
+                qlonglong ll = numberStr.toLongLong(&ok);
 
-//                return ok ? ull : QVariant(numberStr);
+                return ok && ll <= NUMBER_MAX_SAFE_INTEGER ? ll : QVariant(numberStr);
             }
             return u;
         }

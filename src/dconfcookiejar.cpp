@@ -66,8 +66,11 @@ bool DConfCookieJar::isTemporary() const
 
 void DConfCookieJar::importFromTemporaryCookieJar(DConfCookieJar *temporaryCookieJar)
 {
-    if (!temporaryCookieJar->isTemporary() || allCookies().count() > 0)
+    if (!temporaryCookieJar->isTemporary())
         return;
+
+    foreach (QNetworkCookie cookie, allCookies())
+        deleteCookie(cookie);
 
     foreach (QNetworkCookie cookie, temporaryCookieJar->allCookies())
         insertCookie(cookie);

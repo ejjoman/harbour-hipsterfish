@@ -7,113 +7,83 @@ import "../delegates"
 
 BaseView {
     id: root
+    isLoading: timeline.isLoading
 
     function scrollToTop() {
-        listView.scrollToTop()
+        streamView.listView.scrollToTop()
     }
 
     function init() {
         console.log("init...")
-        refresh()
+        timeline.loadData(true)
     }
 
-    function refresh() {
-        update(true)
-    }
-
-    function update(clear) {
-        root.isLoading = true;
-
-        var nextID = timeline.canLoadMore && !clear ? timeline.nextMaxID : "";
-
-        InstagramClient.updateTimeline(nextID, function(result) {
-            //timeline.json = result;
-            timeline.updateJSONModel(result, clear)
-
-            console.log(JSON.stringify(result, null, 4))
-
-            if (result.more_available)
-                timeline.nextMaxID = result.next_max_id;
-            else
-                timeline.nextMaxID = "";
-
-            root.isLoading = false;
-        })
-    }
-
-    property int currentIndex: 0
-    onCurrentIndexChanged: loadMore();
-
-    function loadMore() {
-        if (!timeline.canLoadMore || root.isLoading || listView.quickScrollAnimating)
-            return;
-
-        if (timeline.count - (currentIndex+1) <= 2 ) {
-            console.log("!!! load moar !!!", currentIndex, (timeline.count-1))
-            update(false)
-        }
-    }
-
-    JSONListModel {
+    InstagramModel {
         id: timeline
         query: "$.items.*"
 
-        readonly property bool canLoadMore: nextMaxID !== ""
-        property string nextMaxID: ""
+        attachedProperties: ({
+            "id": null,
+            "has_liked": false,
+            "video_versions": [],
+            "caption": {
+                "user": {
+                    "profile_pic_url": "",
+                    "username": ""
+                },
+                "text": "",
+                "created_at": 0
+            },
+            "location": {
+                "name": ""
+            },
+            "image_versions2": [],
+            "view_count": 0,
+            "like_count": 0,
+            "user": {
+                "profile_pic_url": "",
+                "username": ""
+            },
+            "text": "",
+            "comments": []
+        })
+
+
+        function loadData(clear) {
+            isLoading = true
+
+            var nextID = canLoadMore && !clear ? nextMaxID : "";
+
+            InstagramClient.updateTimeline(nextID, function(result) {
+                // ensure every item has a video_versions property so the ListModel knows it.
+                // otherwise this property is not accessable from the delegate :/
+//                for (var o in result.items)
+//                    if (!result.items[o].hasOwnProperty("video_versions"))
+//                        result.items[o].video_versions = [];
+
+                updateJSONModel(result, clear)
+
+                //console.log(JSON.stringify(result, null, 4))
+
+                if (result.more_available)
+                    nextMaxID = result.next_max_id;
+                else
+                    nextMaxID = "";
+
+                isLoading = false;
+            })
+        }
     }
 
-    SilicaListView {
-        id: listView
+    PostStreamView {
+        id: streamView
         anchors.fill: parent
-        spacing: Theme.paddingLarge * 2
-        clip: true
-        model: timeline.model
-        //quickScrollEnabled: false
-
-        onContentYChanged: {
-            var idx = indexAt(0, contentY + height)
-
-            if (idx >= 0)
-                root.currentIndex = idx
-        }
-
-        onQuickScrollAnimatingChanged: root.loadMore();
-
-        PullDownMenu {
-            MenuItem {
-                text: qsTr("Refresh")
-                onClicked: root.refresh()
-            }
-        }
-
-        header: Item {
-            height: Theme.paddingSmall
-            width: parent.width
-        }
-
-        footer: LoadingMoreIndicator {
-            visible: isLoading && listView.count > 0
-        }
-
-        delegate: PostDelegate {}
-
-//        delegate: Label {
-//            anchors.left: parent.left
-//            anchors.right: parent.right
-
-//            text: model.caption.text
-//            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-//        }
-
-        VerticalScrollDecorator {}
-
-        opacity: listView.count > 0 ? 1 : 0
-        Behavior on opacity { FadeAnimator {}}
+        model: timeline
     }
 
     BusyIndicator {
         anchors.centerIn: parent
         size: BusyIndicatorSize.Large
-        running: isLoading && listView.count == 0
+        running: isLoading && timeline.count == 0
     }
 }

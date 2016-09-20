@@ -5,6 +5,7 @@
 #include "instagramclient.h"
 #include "instagramaccount.h"
 #include "instagramaccountmanager.h"
+#include "qmlstringutils.h"
 
 int main(int argc, char *argv[])
 {
@@ -23,8 +24,9 @@ int main(int argc, char *argv[])
     qDebug() << "The Instagram key is" << INSTAGRAM_SIGNATURE_KEY;
 
     qmlRegisterSingletonType<InstagramClient>("harbour.hipsterfish.Instagram", 1, 0, "InstagramClient", &InstagramClient::qmlInstance);
-    qmlRegisterUncreatableType<InstagramAccount>("harbour.hipsterfish.Instagram", 1, 0, "InstagramAccount", "InstagramAccount is only available through InstagramAccountManager.");
+    qmlRegisterType<InstagramAccount>("harbour.hipsterfish.Instagram", 1, 0, "InstagramAccount"); //, "InstagramAccount is only available through InstagramAccountManager.");
     qmlRegisterSingletonType<InstagramAccountManager>("harbour.hipsterfish.Instagram", 1, 0, "InstagramAccountManager", &InstagramAccountManager::qmlInstance);
+    qmlRegisterSingletonType<QmlStringUtils>("harbour.hipsterfish.Utils", 1, 0, "StringUtils", &QmlStringUtils::qmlInstance);
 
     QQuickView *view = SailfishApp::createView();
     view->setSource(SailfishApp::pathTo("qml/harbour-hipsterfish.qml"));

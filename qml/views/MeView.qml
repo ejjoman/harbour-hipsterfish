@@ -5,8 +5,18 @@ import harbour.hipsterfish.Instagram 1.0
 import "../common"
 
 BaseView {
-    Label {
-        anchors.centerIn: parent
-        text: "Nothing to see here..."
+    function scrollToTop() {
+        gridView.scrollToTop()
+    }
+
+    function init() {
+        console.log("init...")
+        userProfile.load()
+    }
+
+    UserProfile {
+        id: userProfile
+        userID: InstagramClient.currentAccount.userID
+        anchors.fill: parent
     }
 }

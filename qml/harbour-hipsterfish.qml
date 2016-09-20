@@ -2,6 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "pages"
 import harbour.hipsterfish.Instagram 1.0
+import "js/Utils.js" as Utils
 
 ApplicationWindow
 {
@@ -26,7 +27,12 @@ ApplicationWindow
             }
         }
 
-        onAccountCreated: InstagramClient.currentAccount = account
+        //onAccountCreated:
+        onAccountNeedsRelogin: {
+            console.log("qml side... ", account)
+
+            pageStack.replaceAbove(null, Qt.resolvedUrl("pages/LoginPage.qml"), {"account" : account});
+        }
     }
 
     Component.onCompleted: {

@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import harbour.hipsterfish.Instagram 1.0
+import harbour.hipsterfish.Utils 1.0
 import "../common"
 
 Page {
@@ -80,26 +81,23 @@ Page {
         header: CommentEditor {
             id: commentEditor
 
-            onHasFocusChanged: pushUpMenu.enabled = !hasFocus
-            onIsSendingChanged: refreshMenuItem.enabled = !isSending
-
             onSendCommentClicked: {
                 isSending = true
 
                 InstagramClient.sendComment(mediaID, text.trim(), function(result) {
                     isSending = false;
-                    clear()
 
-                    if (result.status === "ok")
+                    if (result.status === "ok") {
+                        clear()
                         comments.model.insert(0, result.comment);
-
+                    }
                 });
 
             }
         }
 
         delegate: ListItem {
-            id: delegate
+            id: commentItem
             contentHeight: row.height + Theme.paddingMedium
 
             function remove() {
@@ -136,6 +134,7 @@ Page {
                     id: profilePicture
 
                     source: model.user.profile_pic_url
+                    userID: model.user.pk
 
                     width: Theme.itemSizeExtraSmall
                     height: Theme.itemSizeExtraSmall
@@ -147,18 +146,22 @@ Page {
                     width: parent.width - parent.spacing - profilePicture.width
                     spacing: Theme.paddingSmall
 
-                    Label {
+                    InstagramLabel {
                         id: commentLabel
                         width: parent.width
                         font.pixelSize: Theme.fontSizeSmall
-                        text: "<b>" + model.user.username + "</b> " + model.text
+                        text: StringUtils.toHtmlEscaped(model.text)
                         wrapMode: Text.Wrap
+                        color: commentItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                     }
 
                     Label {
                         id: timestampLabel
-                        text: Format.formatDate(new Date(model.created_at * 1000), Formatter.DurationElapsed)
-                        color: Theme.secondaryColor
+                        text: {
+                            var timestamp = Format.formatDate(new Date(model.created_at * 1000), Formatter.DurationElapsed)
+                            return model.user.username + " • " + timestamp
+                        }
+                        color: commentItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                         font.pixelSize: Theme.fontSizeExtraSmall
                     }
                 }
@@ -172,7 +175,7 @@ Page {
                         text: qsTr("Delete comment")
                         visible: model.user.pk === InstagramClient.currentAccount.userID
 
-                        onClicked: delegate.remove()
+                        onClicked: commentItem.remove()
                     }
 
                     MenuItem {

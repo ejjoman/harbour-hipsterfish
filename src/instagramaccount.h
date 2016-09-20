@@ -12,11 +12,15 @@ class InstagramAccount : public QObject
     Q_PROPERTY(QString userName READ userName NOTIFY userNameChanged)
     Q_PROPERTY(QString fullName READ fullName NOTIFY fullNameChanged)
     Q_PROPERTY(qlonglong userID READ userID CONSTANT)
+    Q_PROPERTY(QString userIDString READ userIDString CONSTANT)
 
 public:
+    explicit InstagramAccount(QObject *parent = 0);
     explicit InstagramAccount(const qlonglong userID, QObject *parent = 0);
 
     qlonglong userID() const;
+    QString userIDString() const;
+    double userIDDouble() const;
 
     QString userName() const;
     void setUserName(const QString userName);
@@ -30,8 +34,6 @@ public:
 signals:
     void userNameChanged();
     void fullNameChanged();
-
-    void testChanged(int test);
 
 public slots:
 

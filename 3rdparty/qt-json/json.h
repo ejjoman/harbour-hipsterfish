@@ -34,6 +34,8 @@
  * Json parses a JSON data into a QVariant hierarchy.
  */
 namespace QtJson {
+    const qlonglong NUMBER_MAX_SAFE_INTEGER = 9007199254740991;
+
     typedef QVariantMap JsonObject;
     typedef QVariantList JsonArray;
 

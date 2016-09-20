@@ -22,7 +22,7 @@ Page {
             top: parent.top
             left: parent.left
             right: parent.right
-            bottom: tabBar.top
+            bottom: tabBar.visible ? tabBar.top : parent.bottom
         }
 
         model: VisualItemModel {
@@ -144,6 +144,11 @@ Page {
             }
         }
     }
+
+//    Connections {
+//        target: Qt.inputMethod
+//        onVisibleChanged: tabBar.visible = !Qt.inputMethod.visible
+//    }
 }
 
 

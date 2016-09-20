@@ -10,6 +10,8 @@ Item {
 
     property alias source: profilePicture.source
 
+    property var userID
+
     opacity: profilePicture.status === Image.Ready ? 1 : 0
 
     Behavior on opacity {
@@ -21,7 +23,7 @@ Item {
 
         anchors.fill: parent
         visible: false
-        source: model.user.profile_pic_url
+        //source: model.user.profile_pic_url
 
         sourceSize {
             width: width
@@ -41,5 +43,14 @@ Item {
         anchors.fill: parent
         source: profilePicture
         maskSource: mask
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        enabled: !!root.userID
+
+        onClicked: {
+            pageStack.push(Qt.resolvedUrl("../pages/UserProfilePage.qml"), {"userID": root.userID})
+        }
     }
 }

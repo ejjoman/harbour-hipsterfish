@@ -65,13 +65,19 @@ bool InstagramAccountManager::hasAccount() const
 
 InstagramAccount *InstagramAccountManager::createAccount(qlonglong userID, QString userName, QString fullName, DConfCookieJar *cookieJar, bool isDefaultAccount)
 {
-    auto account = new InstagramAccount(userID, this);
+    InstagramAccount *account;
+
+    if (_accounts.contains(userID)) {
+        account = _accounts[userID];
+    } else {
+        account = new InstagramAccount(userID, this);
+        this->_accounts.insert(userID, account);
+    }
+
     account->setUserName(userName);
     account->setFullName(fullName);
     account->cookieJar()->importFromTemporaryCookieJar(cookieJar);
     account->save();
-
-    this->_accounts.insert(userID, account);
 
     if (isDefaultAccount)
         setDefaultAccount(account);
