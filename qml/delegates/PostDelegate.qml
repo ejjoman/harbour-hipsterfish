@@ -51,11 +51,9 @@ Item {
     // because of ListModel behaviour, internally video_versions is a ListModel, not an array
     property bool isVideo: model.video_versions.count > 0
 
-    readonly property int _viewContentY: ListView.view.contentY
+    //readonly property int _viewContentY: ListView.view.contentY
 
-    property bool isInView: ((y >= ListView.view.contentY && y <= ListView.view.contentY + ListView.view.height)
-                             || (y + height >= ListView.view.contentY && y + height <= ListView.view.contentY + ListView.view.height)
-                             || (y <= ListView.view.contentY && y + height >= ListView.view.contentY + ListView.view.height))
+
 
     readonly property ListView view: ListView.view
 
@@ -64,7 +62,7 @@ Item {
     MouseArea {
         id: captionItem
 
-        y: Math.min(Math.max(0, _viewContentY - parent.y), parent.height-height)
+        y: Math.min(Math.max(0, delegate.view.contentY - parent.y), parent.height-height)
         z: 2
 
         height: userInfoRow.height + Theme.paddingMedium * 2
@@ -76,32 +74,32 @@ Item {
 
         onClicked: pageStack.push(Qt.resolvedUrl("../pages/UserProfilePage.qml"), {"userID": model.user.pk})
 
-        FastBlur {
-            id: fastBlur
-            anchors.fill: parent
+//        FastBlur {
+//            id: fastBlur
+//            anchors.fill: parent
 
-            radius: 64
+//            radius: 64
 
-            source: ShaderEffectSource {
-                id: fastBlurSource
-                sourceItem: column
-                sourceRect: Qt.rect(0, captionItem.y, fastBlur.width, fastBlur.height)
-            }
-        }
+//            source: ShaderEffectSource {
+//                id: fastBlurSource
+//                sourceItem: column
+//                sourceRect: Qt.rect(0, captionItem.y, fastBlur.width, fastBlur.height)
+//            }
+//        }
 
-        ColorOverlay {
-            id: colorOverlay
-            source: fastBlur
-            anchors.fill: fastBlur
-            color: "#40000000"
+//        ColorOverlay {
+//            id: colorOverlay
+//            source: fastBlur
+//            anchors.fill: fastBlur
+//            color: "#40000000"
 
-            Rectangle {
-                anchors.fill: parent
-                color: Theme.highlightBackgroundColor
-                opacity: captionItem.pressed ? 0.3 : 0
-                visible: opacity > 0
-            }
-        }
+//            Rectangle {
+//                anchors.fill: parent
+//                color: Theme.highlightBackgroundColor
+//                opacity: captionItem.pressed ? 0.3 : 0
+//                visible: opacity > 0
+//            }
+//        }
 
         Row {
             id: userInfoRow
@@ -230,34 +228,13 @@ Item {
                                 onStatusChanged: console.log(status)
                                 onPlaybackStateChanged: console.log(playbackState)
 
-                                source: getBestVideoMatch().url;
-
-                                function getBestVideoMatch() {
-                                    var video_versions = [];
+                                source: {
+                                    var arr = [];
 
                                     for (var i=0; i<model.video_versions.count; i++)
-                                        video_versions.push(model.video_versions.get(i));
+                                        arr.push(model.video_versions.get(i));
 
-                                    var sorted = video_versions.sort(function(a, b) { return a.width - b.width})
-
-                                    var largest = null;
-
-                                    for (var key in sorted) {
-                                        var width = sorted[key].width;
-
-                                        if (!largest || largest.width < width) {
-                                            largest = {key: key, width: width}
-                                        }
-
-                                        if (width >= parent.width) {
-                                            //console.log("Found best match:", sorted[key].width + "x" + sorted[key].height);
-                                            return sorted[key];
-                                        }
-                                    }
-
-                                    //console.log("Found no good match, use largest instead:", sorted[largest.key].width + "x" + sorted[largest.key].height);
-
-                                    return sorted[largest.key];
+                                    return Utils.getBestMatch(arr, imageContainer.width, imageContainer.height, false).url
                                 }
                             }
 
@@ -265,6 +242,7 @@ Item {
                                 id: videoOutput
                                 anchors.fill: parent
                                 source: video
+                                fillMode: "PreserveAspectCrop"
                             }
 
                             Item {
@@ -308,9 +286,17 @@ Item {
                             }
 
                             Connections {
-                                target: delegate
-                                onIsInViewChanged: {
-                                    if (!delegate.isInView && video.playbackState == MediaPlayer.PlayingState)
+                                target: delegate.view
+
+                                onContentYChanged: {
+                                    if (video.playbackState != MediaPlayer.PlayingState)
+                                        return;
+
+                                    var isInView = ((delegate.y >= delegate.view.contentY && delegate.y <= delegate.view.contentY + delegate.view.height)
+                                                || (delegate.y + delegate.height >= delegate.view.contentY && delegate.y + delegate.height <= delegate.view.contentY + delegate.view.height)
+                                                || (delegate.y <= delegate.view.contentY && delegate.y + delegate.height >= delegate.view.contentY + delegate.view.height))
+
+                                    if (!isInView)
                                         video.pause()
                                 }
                             }
