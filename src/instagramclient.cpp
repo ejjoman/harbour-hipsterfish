@@ -449,11 +449,11 @@ void InstagramClient::loadFriendshipStatus(qlonglong userID, QJSValue callback)
     executeGetRequest(url, callback);
 }
 
-void InstagramClient::loadFriendshipStatus(QList<qlonglong> userIDs, QJSValue callback)
+void InstagramClient::loadFriendshipStatus(QVariantList userIDs, QJSValue callback)
 {
     QStringList ids;
-    foreach (qlonglong userID, userIDs) {
-        ids.append(QString::number(userID));
+    foreach (QVariant userID, userIDs) {
+        ids.append(QString::number(userID.toLongLong()));
     }
 
     QUrlQuery q;
@@ -462,35 +462,8 @@ void InstagramClient::loadFriendshipStatus(QList<qlonglong> userIDs, QJSValue ca
     executePostRequest(QUrl("https://i.instagram.com/api/v1/friendships/show_many/"), q.toString(QUrl::FullyDecoded).toUtf8(), callback);
 }
 
-void InstagramClient::loadFollowers(qlonglong userID, QString maxID, QJSValue callback)
+void InstagramClient::loadFriendships(InstagramClient::FriendshipType type, qlonglong userID, QString module, QString maxID, QString rankToken, QJSValue callback)
 {
-    static QString rankToken;
-
-    if (maxID.isEmpty() || rankToken.isEmpty())
-        rankToken = createCleanedUuid();
-
-
-    QUrlQuery q;
-    q.addQueryItem("module", "overview");
-    q.addQueryItem("support_new_api", "true");
-    q.addQueryItem("rank_token", rankToken);
-
-    if (!maxID.isEmpty())
-        q.addQueryItem("max_id", maxID);
-
-    QUrl url(QString("https://i.instagram.com/api/v1/friendships/%1/followers/").arg(userID));
-    url.setQuery(q);
-
-    executeGetRequest(url, callback);
-}
-
-void InstagramClient::loadFollowing(QString module, qlonglong userID, QString maxID, QJSValue callback)
-{
-    static QString rankToken;
-
-    if (maxID.isEmpty() || rankToken.isEmpty())
-        rankToken = createCleanedUuid();
-
     QUrlQuery q;
     q.addQueryItem("module", module);
     q.addQueryItem("support_new_api", "true");
@@ -499,7 +472,22 @@ void InstagramClient::loadFollowing(QString module, qlonglong userID, QString ma
     if (!maxID.isEmpty())
         q.addQueryItem("max_id", maxID);
 
-    QUrl url(QString("https://i.instagram.com/api/v1/friendships/%1/following/").arg(userID));
+    QString typeString;
+
+    switch (type) {
+    case InstagramClient::Followers:
+        typeString = QStringLiteral("followers");
+        break;
+
+    case InstagramClient::Following:
+        typeString = QStringLiteral("following");
+        break;
+
+    default:
+        return;
+    }
+
+    QUrl url(QString("https://i.instagram.com/api/v1/friendships/%1/%2/").arg(userID).arg(typeString));
     url.setQuery(q);
 
     executeGetRequest(url, callback);

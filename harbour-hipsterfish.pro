@@ -91,7 +91,9 @@ DISTFILES += \
     qml/common/StaticMap.qml \
     qml/pages/LocationPage.qml \
     qml/common/NonInteractiveGridView.qml \
-    qml/pages/HashtagPage.qml
+    qml/pages/HashtagPage.qml \
+    qml/pages/FriendshipsPage.qml \
+    qml/delegates/UserListItem.qml
 
 HEADERS += \
     src/dconfcookiejar.h \

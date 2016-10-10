@@ -27,7 +27,13 @@ public:
         PlacesSearch
     };
 
+    enum FriendshipType {
+        Followers,
+        Following
+    };
+
     Q_ENUMS(SearchCategory)
+    Q_ENUMS(FriendshipType)
 
     static const QString SETTINGS_PATH;
 
@@ -66,10 +72,9 @@ public:
     Q_INVOKABLE void loadTagInfos(QString tag, QJSValue callback);
 
     Q_INVOKABLE void loadFriendshipStatus(qlonglong userID, QJSValue callback);
-    Q_INVOKABLE void loadFriendshipStatus(QList<qlonglong> userIDs, QJSValue callback);
+    Q_INVOKABLE void loadFriendshipStatus(QVariantList userIDs, QJSValue callback);
 
-    Q_INVOKABLE void loadFollowers(qlonglong userID, QString maxID, QJSValue callback);
-    Q_INVOKABLE void loadFollowing(QString module, qlonglong userID, QString maxID, QJSValue callback);
+    Q_INVOKABLE void loadFriendships(FriendshipType type, qlonglong userID, QString module, QString maxID, QString rankToken, QJSValue callback);
 
     Q_INVOKABLE void search(SearchCategory category, QString query, int count, QString rankToken, QJSValue callback);
 

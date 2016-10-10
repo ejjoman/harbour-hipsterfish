@@ -7,7 +7,7 @@
 #include "instagramaccountmanager.h"
 #include "qmlstringutils.h"
 
-int main(int argc, char *argv[])
+Q_DECL_EXPORT int main(int argc, char *argv[])
 {
     // SailfishApp::main() will display "qml/template.qml", if you need more
     // control over initialization, you can use:
@@ -17,7 +17,6 @@ int main(int argc, char *argv[])
     //   - SailfishApp::pathTo(QString) to get a QUrl to a resource file
     //
     // To display the view, call "show()" (will show fullscreen on device).
-
     QGuiApplication *app = SailfishApp::application(argc, argv);
     app->setApplicationName(APP_NAME);
 

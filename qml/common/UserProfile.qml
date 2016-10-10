@@ -99,9 +99,9 @@ Item {
                     readonly property int itemWidth: ((width + spacing) / children.length) - spacing
 
                     ProfileDetailItem {
-                        id: postsDetailItem
-
                         width: parent.itemWidth
+
+                        id: postsDetailItem
                         label: qsTr("Posts")
                     }
 
@@ -111,6 +111,11 @@ Item {
                         width: parent.itemWidth
                         label: qsTr("Followers")
                         abbreviate: true
+
+                        onClicked: pageStack.push("../pages/FriendshipsPage.qml", {
+                                                      userID: root.userID,
+                                                      friendshipType: InstagramClient.Followers
+                                                  })
                     }
 
                     ProfileDetailItem {
@@ -118,6 +123,11 @@ Item {
 
                         width: parent.itemWidth
                         label: qsTr("Following")
+
+                        onClicked: pageStack.push("../pages/FriendshipsPage.qml", {
+                                                      userID: root.userID,
+                                                      friendshipType: InstagramClient.Following
+                                                  })
                     }
                 }
             }
