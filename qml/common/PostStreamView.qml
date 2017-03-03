@@ -51,10 +51,14 @@ Item {
 
         delegate: PostDelegate {}
 
+
+
         VerticalScrollDecorator {}
 
         opacity: listView.count > 0 ? 1 : 0
         visible: opacity > 0
+        quickScroll: false
+
         Behavior on opacity { FadeAnimator {}}
 
         PullDownMenu {

@@ -15,11 +15,15 @@ Item {
     property alias view: view
     property string mode: "grid"
 
+    property alias viewPlaceholder: viewPlaceholder
+    property alias header: view.header
+    property alias footer: view.footer
+
     function _loadMore() {
         if (!model.canLoadMore || model.isLoading || view.quickScrollAnimating)
             return;
 
-        if (model.count - (currentIndex+1) <= 2 ) {
+        if (model.count - (currentIndex+1) < 12 ) {
             console.log("!!! load moar !!!", currentIndex, (view.count-1))
             model.loadData(false)
         }
@@ -30,6 +34,11 @@ Item {
 
         anchors.fill: parent
 
+        /*
+        readonly property int itemsPerRow: {
+            return (Screen.sizeCategory + 2) * (orientation & Orientation.PortraitMask ? 1 : 2);
+        }
+          */
         readonly property int itemsPerRow: mode === "grid" ? 3 : 1
         property int _currentIndex: 0
 
@@ -37,6 +46,7 @@ Item {
 
         cellWidth: mode === "grid" ? width / itemsPerRow : width
         cellHeight: mode === "grid" ? cellWidth : undefined //searchWrapper.searchIsActive ? Theme.itemSizeMedium : cellWidth
+        quickScroll: false
 
         model: root.model.model
         clip: true
@@ -69,6 +79,7 @@ Item {
                     width: wrapper.width
                     height: width
 
+                    readonly property bool isVideo: model.video_versions.count > 0
                     readonly property var bestMatch: Utils.getBestMatch(model.image_versions2.candidates, width, height, true)
 
                     Image {
@@ -93,6 +104,20 @@ Item {
                         }
                     }
 
+                    Image {
+                        id: videoIndicator
+                        visible: discoverDelegate.isVideo
+
+                        anchors {
+                            right: parent.right
+                            rightMargin: Theme.paddingMedium
+                            bottom: parent.bottom
+                            bottomMargin: Theme.paddingMedium
+                        }
+
+                        source: "image://theme/icon-m-file-video"
+                    }
+
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
@@ -114,12 +139,27 @@ Item {
             }
         }
 
+        footer: LoadingMoreIndicator {
+            visible: model.count > 0 && model.canLoadMore
+        }
+
         ViewPlaceholder {
+            id: viewPlaceholder
             enabled: view.count == 0 && !model.isLoading
             text: qsTr("No posts")
             verticalOffset: view.headerItem.height/2 - height/2
         }
 
-        ScrollDecorator {}
+        VerticalScrollDecorator {}
+
+        BusyIndicator {
+            running: model.count == 0 && model.isLoading
+            anchors {
+                centerIn: parent
+                verticalCenterOffset: view.header ? view.headerItem.height / 2 : 0
+            }
+
+            size: BusyIndicatorSize.Large
+        }
     }
 }

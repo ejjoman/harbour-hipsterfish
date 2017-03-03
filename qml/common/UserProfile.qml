@@ -10,16 +10,20 @@ import "../js/Utils.js" as Utils
 Item {
     id: root
 
-    // cannot use int here because QML int can just handle integers of arround (+/-)2000000000
+    // cannot use int here because QML's int-type can just handle integers of arround (+/-)2000000000
     property var userID
     property string username
+
+    readonly property bool isOwnProfile: userID === InstagramClient.currentAccount.userID
+
+    property bool _profileDataLoaded: false
+    property bool _friendshipDataLoaded: false
+    property bool _isPrivate: false
 
     anchors.fill: parent
 
     function load() {
         InstagramClient.loadUserInfo(userID || username, function(result) {
-            //console.debug(JSON.stringify(result, null, 4));
-
             if (result.status !== "ok")
                 return;
 
@@ -27,6 +31,8 @@ Item {
 
             header.title = result.user.username;
             header.description = result.user.full_name;
+
+            _isPrivate = result.user.is_private;
 
             biographyLabel.text = StringUtils.toHtmlEscaped(result.user.biography)
 
@@ -41,8 +47,22 @@ Item {
             followersDetailItem.value = result.user.follower_count
             follwingDetailItem.value = result.user.following_count
 
+            followButton.hasChaining = result.user.has_chaining
+
+            _profileDataLoaded = true;
+
             feedModel.loadData(true);
         })
+
+        if (!isOwnProfile) {
+            InstagramClient.loadFriendshipStatus(userID, function(result) {
+                if (result.status !== "ok")
+                    return;
+
+                followButton.isFollowing = result.following
+                _friendshipDataLoaded = true;
+            })
+        }
     }
 
     Column {
@@ -50,6 +70,13 @@ Item {
 
         parent: view.view.contentItem
         y: view.view.headerItem.y
+
+        //visible: opacity > 0
+        opacity: _profileDataLoaded ? 1 : 0
+
+        Behavior on opacity {
+            FadeAnimator {}
+        }
 
         anchors {
             left: parent.left
@@ -87,47 +114,74 @@ Item {
                 ProfilePicture {
                     id: profilePicture
 
-                    width: Theme.itemSizeExtraLarge
-                    height: width
+                    width: height
+                    height: profileInfoColumn.childrenRect.height
                 }
 
-                Row {
-                    Layout.fillWidth: true
+                Column {
+                    id: profileInfoColumn
 
                     spacing: Theme.paddingMedium
 
-                    readonly property int itemWidth: ((width + spacing) / children.length) - spacing
+                    Layout.fillWidth: true
 
-                    ProfileDetailItem {
-                        width: parent.itemWidth
+                    Row {
+                        width: parent.width
+                        spacing: Theme.paddingMedium
 
-                        id: postsDetailItem
-                        label: qsTr("Posts")
+                        readonly property int itemWidth: ((width + spacing) / children.length) - spacing
+
+                        ProfileDetailItem {
+                            width: parent.itemWidth
+
+                            id: postsDetailItem
+                            label: qsTr("Posts")
+                        }
+
+                        ProfileDetailItem {
+                            id: followersDetailItem
+
+                            width: parent.itemWidth
+                            label: qsTr("Followers")
+                            abbreviate: true
+
+                            onClicked: pageStack.push("../pages/FriendshipsPage.qml", {
+                                                          userID: root.userID,
+                                                          friendshipType: InstagramClient.Followers
+                                                      })
+                        }
+
+                        ProfileDetailItem {
+                            id: follwingDetailItem
+
+                            width: parent.itemWidth
+                            label: qsTr("Following")
+
+                            onClicked: pageStack.push("../pages/FriendshipsPage.qml", {
+                                                          userID: root.userID,
+                                                          friendshipType: InstagramClient.Following
+                                                      })
+                        }
                     }
 
-                    ProfileDetailItem {
-                        id: followersDetailItem
+                    FollowButton {
+                        id: followButton
 
-                        width: parent.itemWidth
-                        label: qsTr("Followers")
-                        abbreviate: true
+                        property bool hasChaining: false
 
-                        onClicked: pageStack.push("../pages/FriendshipsPage.qml", {
-                                                      userID: root.userID,
-                                                      friendshipType: InstagramClient.Followers
-                                                  })
+                        width: parent.width
+                        visible: !isOwnProfile && _friendshipDataLoaded
+
+                        showLabelInSplitMode: true
+                        showSuggestedButton: hasChaining
                     }
 
-                    ProfileDetailItem {
-                        id: follwingDetailItem
+                    InstagramButton {
+                        label: qsTr("Edit profile")
+                        iconSource: "image://theme/icon-s-edit?" + (pressed ? Theme.highlightColor : Theme.primaryColor)
 
-                        width: parent.itemWidth
-                        label: qsTr("Following")
-
-                        onClicked: pageStack.push("../pages/FriendshipsPage.qml", {
-                                                      userID: root.userID,
-                                                      friendshipType: InstagramClient.Following
-                                                  })
+                        visible: isOwnProfile
+                        width: parent.width
                     }
                 }
             }
@@ -200,11 +254,15 @@ Item {
             width: view.width
             height: headerComponent.height
         }
+
+        viewPlaceholder.text: _isPrivate ? qsTr("This profile is private") : viewPlaceholder.text
     }
 
     InstagramModel {
         id: feedModel
         query: "$.items.*"
+
+        isLoading: true
 
         attachedProperties: ({
             "id": null,
@@ -232,14 +290,24 @@ Item {
             "comments": []
         })
 
-
         function loadData(clear) {
+            _loadData(clear, 3)
+        }
+
+        function _loadData(clear, pagesToLoad) {
             isLoading = true
 
             var nextID = canLoadMore && !clear ? nextMaxID : "";
 
             InstagramClient.loadUserFeed(userID, nextID, function(result) {
-                //console.log(JSON.stringify(result, null, 4))
+                if (result["status"] !== "ok") {
+                    isLoading = false;
+                    return;
+                }
+
+                console.log("snip-->")
+                console.log(JSON.stringify(result, null, 4))
+                console.log("<--snip")
 
                 updateJSONModel(result, clear)
 
@@ -248,7 +316,10 @@ Item {
                 else
                     nextMaxID = "";
 
-                isLoading = false;
+                if (nextMaxID != "" && pagesToLoad-1 > 0)
+                    _loadData(false, pagesToLoad-1)
+                else
+                    isLoading = false;
             });
         }
     }

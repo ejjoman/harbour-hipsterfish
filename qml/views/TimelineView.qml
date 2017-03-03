@@ -20,7 +20,7 @@ BaseView {
 
     InstagramModel {
         id: timeline
-        query: "$.items.*"
+        query: "$.items[?(@.image_versions2)]"
 
         attachedProperties: ({
             "id": null,
@@ -55,6 +55,11 @@ BaseView {
             var nextID = canLoadMore && !clear ? nextMaxID : "";
 
             InstagramClient.updateTimeline(nextID, function(result) {
+                if (result.status !== "ok") {
+                    isLoading = false;
+                    return;
+                }
+
                 // ensure every item has a video_versions property so the ListModel knows it.
                 // otherwise this property is not accessable from the delegate :/
 //                for (var o in result.items)

@@ -32,7 +32,6 @@ InstagramClient::InstagramClient(QObject *parent)
     phoneIDConfItem = new MGConfItem(SETTINGS_PATH + "phoneID", this);
     guidConfItem = new MGConfItem(SETTINGS_PATH + "GUID", this);
     deviceIDConfItem = new MGConfItem(SETTINGS_PATH + "deviceID", this);
-
 }
 
 void InstagramClient::login(QString username, QString password, QJSValue callback)
@@ -80,7 +79,9 @@ void InstagramClient::setCurrentAccount(InstagramAccount *account)
         return;
 
     _currentAccount = account;
-    this->apiNetworkAccessManager->setCookieJar(account->cookieJar());
+
+    if (account != NULL)
+        this->apiNetworkAccessManager->setCookieJar(account->cookieJar());
 
     emit currentAccountChanged();
 }

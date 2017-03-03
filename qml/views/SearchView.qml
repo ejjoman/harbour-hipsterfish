@@ -18,21 +18,21 @@ BaseView {
         discoverModel.loadData(true)
     }
 
-    property int currentIndex: -1
-    onCurrentIndexChanged: loadMore();
+//    property int currentIndex: -1
+//    onCurrentIndexChanged: loadMore();
 
-    function loadMore() {
-        // make sure currentIndex is up-to-date...
-        gridView.updateCurrentIndex()
+//    function loadMore() {
+//        // make sure currentIndex is up-to-date...
+//        feedView.updateCurrentIndex()
 
-        if (!discoverModel.canLoadMore || root.isLoading || gridView.quickScrollAnimating)
-            return;
+//        if (!discoverModel.canLoadMore || root.isLoading || gridView.quickScrollAnimating)
+//            return;
 
-        if (discoverModel.count - (currentIndex+1) <= 2 * gridView.itemsPerRow || (currentIndex == -1 && discoverModel.count > 0)) {
-            console.log("!!! load moar !!!", currentIndex, (discoverModel.count-1))
-            discoverModel.loadData(false)
-        }
-    }
+//        if (discoverModel.count - (currentIndex+1) <= 2 * gridView.itemsPerRow || (currentIndex == -1 && discoverModel.count > 0)) {
+//            console.log("!!! load moar !!!", currentIndex, (discoverModel.count-1))
+//            discoverModel.loadData(false)
+//        }
+//    }
 
     InstagramModel {
         id: discoverModel
@@ -77,7 +77,7 @@ BaseView {
 //                        result.items[o].media.video_versions = [];
 
                 updateJSONModel(result, clear)
-                gridView.forceLayout()
+                feedView.view.forceLayout()
 
                 if (result.more_available)
                     discoverModel.nextMaxID = result.next_max_id;
@@ -146,8 +146,8 @@ BaseView {
         height: searchField.height
         width: parent.width
 
-        parent: gridView.contentItem
-        y: gridView.headerItem.y
+        parent: feedView.view.contentItem
+        y: feedView.view.headerItem.y
 
         SearchField {
             id: searchField
@@ -162,130 +162,148 @@ BaseView {
     }
 
 
-
-    SilicaGridView {
-        id: gridView
-        currentIndex: -1
-
-        readonly property int itemsPerRow: {
-            return (Screen.sizeCategory + 2) * (orientation & Orientation.PortraitMask ? 1 : 2);
-        }
+    FeedView {
+        id: feedView
 
         anchors.fill: parent
-
-        cellWidth: searchWrapper.searchIsActive ? width : width / itemsPerRow
-        cellHeight: searchWrapper.searchIsActive ? Theme.itemSizeMedium : cellWidth
-
-        model: discoverModel.model //!searchWrapper.searchIsActive ? discoverModel.model : null
+        model: discoverModel
         clip: true
 
-        function updateCurrentIndex() {
-            var idx = indexAt(itemsPerRow * cellWidth - (cellWidth / 2), contentY + height - (cellHeight / 2))
-
-            if (idx >= 0)
-                root.currentIndex = idx
-        }
-
-        onContentYChanged: updateCurrentIndex()
-        onQuickScrollAnimatingChanged: root.loadMore();
-
-        PullDownMenu {
-            MenuItem {
-                text: qsTr("Refresh")
-                onClicked: discoverModel.loadData(true)
-            }
-        }
+//        PullDownMenu {
+//            MenuItem {
+//                text: qsTr("Refresh")
+//                onClicked: discoverModel.loadData(true)
+//            }
+//        }
 
         // Placeholder for searchField
         header: Item {
-            width: gridView.width
+            width: feedView.width
             height: searchWrapper.height
         }
-
-        footer: LoadingMoreIndicator {
-            visible: gridView.count > 0 && discoverModel.canLoadMore
-        }
-
-        delegate: Item {
-            id: wrapper
-
-            Loader {
-                sourceComponent: searchWrapper.searchIsActive ? searchResultDelegateComponent : discoverDelegateComponent
-            }
-
-            Component {
-                id: discoverDelegateComponent
-
-                Item {
-                    id: discoverDelegate
-
-                    width: gridView.width / gridView.itemsPerRow
-                    height: width
-
-                    readonly property var bestMatch: Utils.getBestMatch(model.image_versions2.candidates, width, height, true)
-
-                    Image {
-                        id: img
-
-                        anchors {
-                            fill: parent
-                            margins: Theme.paddingMedium / 8
-                        }
-
-                        source: discoverDelegate.bestMatch.url
-
-                        sourceSize {
-                            width: width
-                            height: height
-                        }
-
-                        opacity: img.status === Image.Ready ? 1 : 0
-
-                        Behavior on opacity {
-                            FadeAnimator {}
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            pageStack.push("../pages/PostStreamPage.qml", {
-                                               model: discoverModel,
-                                               positionViewAtIndex: model.index
-                                           })
-                        }
-                    }
-                }
-            }
-
-            Component {
-                id: searchResultDelegateComponent
-
-                Item {
-                    id: searchResultDelegate
-
-                    width: gridView.width // gridView.itemsPerRow
-                    height: Theme.itemSizeMedium
-
-                    Label {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: "Test"
-                    }
-                }
-            }
-        }
-
-
-
-        VerticalScrollDecorator {}
-
-        //opacity: gridView.count > 0 ? 1 : 0
-        //Behavior on opacity { FadeAnimator {}}
     }
 
-    BusyIndicator {
-        anchors.centerIn: parent
-        size: BusyIndicatorSize.Large
-        running: isLoading && gridView.count == 0
-    }
+//    SilicaGridView {
+//        id: gridView
+//        currentIndex: -1
+
+
+
+//        anchors.fill: parent
+
+//        cellWidth: searchWrapper.searchIsActive ? width : width / itemsPerRow
+//        cellHeight: searchWrapper.searchIsActive ? Theme.itemSizeMedium : cellWidth
+
+//        model: discoverModel.model //!searchWrapper.searchIsActive ? discoverModel.model : null
+//        clip: true
+
+//        function updateCurrentIndex() {
+//            var idx = indexAt(itemsPerRow * cellWidth - (cellWidth / 2), contentY + height - (cellHeight / 2))
+
+//            if (idx >= 0)
+//                root.currentIndex = idx
+//        }
+
+//        onContentYChanged: updateCurrentIndex()
+//        onQuickScrollAnimatingChanged: root.loadMore();
+
+//        PullDownMenu {
+//            MenuItem {
+//                text: qsTr("Refresh")
+//                onClicked: discoverModel.loadData(true)
+//            }
+//        }
+
+//        // Placeholder for searchField
+//        header: Item {
+//            width: gridView.width
+//            height: searchWrapper.height
+//        }
+
+//        footer: LoadingMoreIndicator {
+//            visible: gridView.count > 0 && discoverModel.canLoadMore
+//        }
+
+//        delegate: Item {
+//            id: wrapper
+
+//            Loader {
+//                sourceComponent: searchWrapper.searchIsActive ? searchResultDelegateComponent : discoverDelegateComponent
+//            }
+
+//            Component {
+//                id: discoverDelegateComponent
+
+//                Item {
+//                    id: discoverDelegate
+
+//                    width: gridView.width / gridView.itemsPerRow
+//                    height: width
+
+//                    readonly property var bestMatch: Utils.getBestMatch(model.image_versions2.candidates, width, height, true)
+
+//                    Image {
+//                        id: img
+
+//                        anchors {
+//                            fill: parent
+//                            margins: Theme.paddingMedium / 8
+//                        }
+
+//                        source: discoverDelegate.bestMatch.url
+
+//                        sourceSize {
+//                            width: width
+//                            height: height
+//                        }
+
+//                        opacity: img.status === Image.Ready ? 1 : 0
+
+//                        Behavior on opacity {
+//                            FadeAnimator {}
+//                        }
+//                    }
+
+//                    MouseArea {
+//                        anchors.fill: parent
+//                        onClicked: {
+//                            pageStack.push("../pages/PostStreamPage.qml", {
+//                                               model: discoverModel,
+//                                               positionViewAtIndex: model.index
+//                                           })
+//                        }
+//                    }
+//                }
+//            }
+
+//            Component {
+//                id: searchResultDelegateComponent
+
+//                Item {
+//                    id: searchResultDelegate
+
+//                    width: gridView.width // gridView.itemsPerRow
+//                    height: Theme.itemSizeMedium
+
+//                    Label {
+//                        anchors.verticalCenter: parent.verticalCenter
+//                        text: "Test"
+//                    }
+//                }
+//            }
+//        }
+
+
+
+//        VerticalScrollDecorator {}
+
+//        //opacity: gridView.count > 0 ? 1 : 0
+//        //Behavior on opacity { FadeAnimator {}}
+//    }
+
+//    BusyIndicator {
+//        anchors.centerIn: parent
+//        size: BusyIndicatorSize.Large
+//        running: isLoading && gridView.count == 0
+//    }
 }

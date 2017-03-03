@@ -4,46 +4,78 @@ import "../common"
 
 ListItem {
     property var modelData
-    contentHeight: row.height
+    property bool showFollowButton: false
 
-    Row {
-        id: row
-        height: profilePicture.height + Theme.paddingMedium * 2
+    contentHeight: profilePicture.height + Theme.paddingMedium * 2
+
+    ProfilePicture {
+        id: profilePicture
 
         anchors {
-            //fill: parent
             left: parent.left
-            right: parent.right
             leftMargin: Theme.horizontalPageMargin
+
+            verticalCenter: parent.verticalCenter
+        }
+
+        source: modelData.profile_pic_url
+        width: Theme.itemSizeExtraSmall
+        height: Theme.itemSizeExtraSmall
+    }
+
+    Column {
+        anchors {
+            left: profilePicture.right
+            leftMargin: Theme.paddingMedium
+
+            right: showFollowButton ? followButtonLoader.left : parent.right
+            rightMargin: showFollowButton ? Theme.paddingLarge : Theme.horizontalPageMargin
+
+            verticalCenter: parent.verticalCenter
+        }
+
+        Label {
+            text: modelData.username
+            width: parent.width
+
+            truncationMode: TruncationMode.Fade
+        }
+
+        Label {
+            text: modelData.full_name
+            width: parent.width
+            visible: text.length > 0
+            font.pixelSize: Theme.fontSizeExtraSmall
+            color: Theme.secondaryColor
+
+            truncationMode: TruncationMode.Fade
+        }
+    }
+
+    Loader {
+        id: followButtonLoader
+        active: showFollowButton
+
+        anchors {
+            right: parent.right
             rightMargin: Theme.horizontalPageMargin
 
             verticalCenter: parent.verticalCenter
         }
 
-        spacing: Theme.paddingMedium
+        sourceComponent: Component {
+            FollowButton {
+                id: followButton
 
-        ProfilePicture {
-            id: profilePicture
+                //opacity: modelData.friendshipstatus_loaded ? 1 : 0
 
-            source: modelData.profile_pic_url
-            width: Theme.itemSizeExtraSmall
-            height: Theme.itemSizeExtraSmall
+                Behavior on opacity {
+                    FadeAnimator {}
+                }
 
-            anchors.verticalCenter: parent.verticalCenter
-        }
-
-        Column {
-            anchors.verticalCenter: parent.verticalCenter
-
-            Label {
-                text: modelData.username
-            }
-
-            Label {
-                text: modelData.full_name
-                visible: text.length > 0
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.secondaryColor
+                isFollowing: modelData.friendshipstatus_loaded && modelData.following
+                showSuggestedButton: isFollowing && modelData.has_chaining
+                showLabelInSplitMode: false
             }
         }
     }

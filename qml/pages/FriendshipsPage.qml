@@ -20,13 +20,14 @@ Page {
 
     InstagramModel {
         id: friendshipsModel
-        query: "$.sections.*.users.*"
+        // data gets filtered in load callback function...
+        //query: "$.sections.*.users.*"
 
         attachedProperties: ({
             "username": null,
             "has_anonymous_profile_picture": false,
             "is_favorite": false,
-            "has_chaining": true,
+            "has_chaining": false,
             "profile_pic_url": null,
             "profile_pic_id": null,
             "full_name": null,
@@ -39,60 +40,57 @@ Page {
             "friendshipstatus_loaded": false
         })
 
-        property var _ids: []
+        //property var _ids: []
 
         function loadData(clear) {
+            console.log();
+
             isLoading = true;
 
             var nextID = !clear && friendshipsModel.canLoadMore ? friendshipsModel.nextMaxID : "";
 
             InstagramClient.loadFriendships(friendshipType, userID, "overview", nextID, _rankToken, function(result) {
-                //console.log(JSON.stringify(result, null, 4))
-
                 if (result.status !== "ok") {
                     isLoading = false;
                     return;
                 }
-
-                friendshipsModel.updateJSONModel(result, clear);
 
                 if (result.big_list)
                     friendshipsModel.nextMaxID = result.next_max_id;
                 else
                     friendshipsModel.nextMaxID = "";
 
-                var indexedUserIDs = JSONPath.jsonPath(result, "$.sections.*.users[*].pk");
+                var modelData = JSONPath.jsonPath(result, "$.sections.*.users.*");
                 var userIDs = [];
+                var indexedUserIDs = [];
 
-                for (var index in indexedUserIDs) {
-                    userIDs.push(indexedUserIDs[index]);
-                    _ids[indexedUserIDs[index]] = index;
+                for (var i=0; i<modelData.length; i++) {
+                    var userID = modelData[i].pk
+
+                    userIDs.push(userID);
+                    indexedUserIDs[userID] = i;
                 }
 
                 InstagramClient.loadFriendshipStatus(userIDs, function(friendshipStatusResult) {
-                    if (friendshipStatusResult.status !== "ok")
+                    if (friendshipStatusResult.status !== "ok") {
+                        isLoading = false;
                         return;
+                    }
 
                     for (var statusUserID in friendshipStatusResult.friendship_statuses) {
                         var status = friendshipStatusResult.friendship_statuses[statusUserID];
-                        var userIndex = _ids[statusUserID]
+                        var userIndex = indexedUserIDs[statusUserID];
 
-                        var test = friendshipsModel.model.get(userIndex);
-
-
-                        friendshipsModel.model.setProperty(userIndex, "following", status.following);
-                        friendshipsModel.model.setProperty(userIndex, "incoming_request", status.incoming_request);
-                        friendshipsModel.model.setProperty(userIndex, "outgoing_request", status.outgoing_request);
-                        friendshipsModel.model.setProperty(userIndex, "is_private", status.is_private);
-
-                        friendshipsModel.model.setProperty(userIndex, "friendshipstatus_loaded", true);
-
-                        test = friendshipsModel.model.get(userIndex);
+                        modelData[userIndex].following = status.following;
+                        modelData[userIndex].incoming_request = status.incoming_request;
+                        modelData[userIndex].outgoing_request = status.outgoing_request;
+                        modelData[userIndex].is_private = status.is_private;
+                        modelData[userIndex].friendshipstatus_loaded = true;
                     }
+
+                    friendshipsModel.updateJSONModel(modelData, clear);
+                    isLoading = false;
                 })
-
-
-                isLoading = false;
             })
         }
     }
@@ -132,31 +130,21 @@ Page {
         }
 
         footer: LoadingMoreIndicator {
-            visible: isLoading
+            visible: friendshipsModel.count > 0 && friendshipsModel.canLoadMore
         }
 
         delegate: UserListItem {
             modelData: model
-            menu: contextMenu
-
-            Component {
-                id: contextMenu
-
-                ContextMenu {
-                    MenuItem {
-                        text: qsTr("Show suggested friends")
-                        visible: model.friendshipstatus_loaded && model.following
-                    }
-
-                    MenuItem {
-                        text: model.following ? qsTr("Unfollow") : qsTr("Follow")
-                        visible: model.friendshipstatus_loaded
-                    }
-                }
-            }
+            showFollowButton: true
         }
 
         VerticalScrollDecorator {}
+
+        BusyIndicator {
+            running: friendshipsModel.count == 0 && friendshipsModel.isLoading
+            anchors.centerIn: parent
+            size: BusyIndicatorSize.Large
+        }
     }
 
     Component.onCompleted: friendshipsModel.loadData(true)

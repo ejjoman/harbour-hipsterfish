@@ -36,6 +36,11 @@ ApplicationWindow
     }
 
     Component.onCompleted: {
+        // for QML live
+        if (InstagramClient.currentAccount) {
+            pageStack.replaceAbove(null, Qt.resolvedUrl("pages/StartPage.qml"));
+        }
+
         if (!InstagramAccountManager.hasAccount) {
             // account creation page
             pageStack.replaceAbove(null, Qt.resolvedUrl("pages/LoginPage.qml"));

@@ -93,7 +93,10 @@ DISTFILES += \
     qml/common/NonInteractiveGridView.qml \
     qml/pages/HashtagPage.qml \
     qml/pages/FriendshipsPage.qml \
-    qml/delegates/UserListItem.qml
+    qml/delegates/UserListItem.qml \
+    qml/common/FollowButton.qml \
+    qml/common/InstagramButton.qml \
+    qml/js/JSONListModelWorker.js
 
 HEADERS += \
     src/dconfcookiejar.h \
@@ -104,3 +107,5 @@ HEADERS += \
 
 include(3rdparty/qt-json/qt-json.pri)
 #include(3rdparty/gel/com_cutehacks_gel.pri)
+
+#DEFINES += QT_NO_DEBUG_OUTPUT

@@ -27,25 +27,19 @@ Item {
     }
 
     function updateJSONModel(json, clearModel) {
-        if (clearModel)
-            root.clear();
+        worker.sendMessage({
+                               "clearModel" : clearModel,
+                               "model": jsonModel,
+                               "json": json,
+                               "query": query,
+                               "attachedProperties": attachedProperties,
+                               "sortFuntion": sortFuntion
+                           })
+    }
 
-        if (json === "")
-            return;
-
-        var objectArray = query !== "" ? JSONPath.jsonPath(json, query) : json;
-
-        if (typeof(sortFuntion) === "function" && objectArray)
-            objectArray.sort(sortFuntion)           
-
-        for (var key in objectArray) {
-            var jo = objectArray[key];
-
-            if (attachedProperties)
-                jo = Utils.addMissingProperties(jo, attachedProperties)
-
-            jsonModel.append(jo);
-        }
+    WorkerScript {
+        id: worker
+        source: "../js/JSONListModelWorker.js"
     }
 
 //    function parseJSONString(jsonString, jsonPathQuery) {

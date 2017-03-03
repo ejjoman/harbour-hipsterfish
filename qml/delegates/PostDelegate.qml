@@ -12,6 +12,12 @@ import "../js/Utils.js" as Utils
 Item {
     id: delegate
 
+    property bool hasLiked: model.has_liked
+
+    // because of ListmodelData behaviour, internally video_versions is a ListmodelData, not an array
+    property bool isVideo: model.video_versions.count > 0
+    readonly property ListView view: ListView.view
+
     function toggleLike() {
         if (hasLiked)
             InstagramClient.unlike(model.id, function(result) {
@@ -39,8 +45,6 @@ Item {
     //width: parent ? parent.width : Screen.width
     height: column.height + Theme.paddingLarge * 2//childrenRect.height
 
-    property bool hasLiked: model.has_liked
-
     onHasLikedChanged: {
         console.log();
 
@@ -48,14 +52,6 @@ Item {
         ListView.view.model.setProperty(model.index, "like_count", hasLiked ? model.like_count + 1 : model.like_count - 1)
     }
 
-    // because of ListModel behaviour, internally video_versions is a ListModel, not an array
-    property bool isVideo: model.video_versions.count > 0
-
-    //readonly property int _viewContentY: ListView.view.contentY
-
-
-
-    readonly property ListView view: ListView.view
 
 
 
@@ -118,7 +114,7 @@ Item {
             ProfilePicture {
                 id: profilePicture
 
-                source: model.caption.user.profile_pic_url
+                source: model.user.profile_pic_url
                 width: Theme.itemSizeExtraSmall
                 height: Theme.itemSizeExtraSmall
 
@@ -129,7 +125,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
 
                 Label {
-                    text: model.caption.user.username
+                    text: model.user.username
                     color: Theme.primaryColor
                 }
 
@@ -422,7 +418,7 @@ Item {
                 }
 
     //            Repeater {
-    //                model: comments
+    //                modelData: comments
 
     //                delegate: Label {
     //                    anchors {
